@@ -12,6 +12,9 @@ APP = Flask(__name__)
 
 GROUPS = {}
 
+if not os.path.exists('mp3'):
+    os.makedirs('mp3')
+
 def generate_group_code():
     """
     Generate an uppercase alphanumeric code, of length CODE_LENGTH
@@ -33,8 +36,6 @@ def all_files():
     """
     List all of the songs in the mp3 directory, where they are stored
     """
-    if not os.path.exists('mp3'):
-        os.makedirs('mp3')
     return jsonify(os.listdir('mp3'))
 
 @APP.route('/group', methods=['GET'])
