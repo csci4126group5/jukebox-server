@@ -77,7 +77,7 @@ def update_score(group_code, device_id):
 @APP.route('/<device_id>/mp3', methods=['GET'])
 def user_songs(device_id):
     """
-    List all of the songs a device has uploaded
+    TODO: List all of the songs a device has uploaded
     """
     pass
 
@@ -85,7 +85,7 @@ def user_songs(device_id):
 @APP.route('/<device_id>/mp3', methods=['POST'])
 def upload_song(device_id):
     """
-    Upload a song to a user's list
+    TODO: Upload a song to a user's list
     """
     pass
 
@@ -93,7 +93,7 @@ def upload_song(device_id):
 @APP.route('/<device_id>/mp3/<song_name>', methods=['GET'])
 def download_song(device_id, song_name):
     """
-    Download a specified song
+    TODO: Download a specified song
     """
     pass
 
