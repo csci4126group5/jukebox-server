@@ -163,8 +163,6 @@ def join_group(group_code):
                                'mp3/' + body['device_id'] + '/' + song,
                                'currentSong' if i == 0 else 'nextSong')
 
-    
-
     return jsonify(group)
 
 
