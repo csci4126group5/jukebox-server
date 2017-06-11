@@ -151,16 +151,19 @@ def join_group(group_code):
     })
 
     # If they are the first to join the group, use their song list to build the playlist
+    # If they are the second, they get to choose the next
     # Sample their songs without replacement
-    if len(group['members']) == 1:
+    if len(group['members']) == 1 or len(group['members']) == 2:
         songs = get_device_songs(body['device_id'])
         random.shuffle(songs)
-        for i in range(2):
+        for i in range(0 if len(group['members']) == 1 else 1, 2):
             if len(songs) > 0:
                 song = songs.pop()
                 set_group_song(group_code,
                                'mp3/' + body['device_id'] + '/' + song,
                                'currentSong' if i == 0 else 'nextSong')
+
+    
 
     return jsonify(group)
 
