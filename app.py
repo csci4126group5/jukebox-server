@@ -5,14 +5,22 @@ import random
 import string
 import os
 import time
-from flask import Flask, jsonify, request
+from flask import Flask, flash, jsonify, request, url_for, send_from_directory, redirect
+from flask import send_from_directory
+from werkzeug.utils import secure_filename
 from mutagen.mp3 import MP3
 
 CODE_LENGTH = 4
+UPLOAD_FOLDER = '/mp3/t<device_id>'
+ALLOWED_EXTENSIONS = set(['WAV', 'AIF', 'MP3', 'MID'])
+
 
 APP = Flask(__name__)
+APP.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 GROUPS = {}
+MUSIC = {}
 
 if not os.path.exists('mp3'):
     os.makedirs('mp3')
@@ -182,20 +190,59 @@ def user_songs(device_id):
     pass
 
 
-@APP.route('/mp3/<device_id>', methods=['POST'])
-def upload_song(device_id):
-    """
-    TODO: Upload a song to a user's list
-    """
-    pass
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@APP.route('/mp3/<device_id>/<song_name>', methods=['GET'])
+
+@APP.route('/<device_id>/mp3')
+def uploaded_file(device_id,mp3):
+    """
+        /mp3/<device_id>
+        TODO: Upload a song to a user's list
+        """
+    path = 'mp3/' + device_id
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    # if request.method == 'POST':
+    #   f = request.files['file']
+    #   print f
+    #   f.save(secure_filename(f.filename))
+    #   return 'file uploaded successfully'
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        print file
+        # if user does not select file, browser submits an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(filename))
+
+            result = {  "name" : mp3, "url" : str(url_for("uploaded_file",filename=filename)) }
+
+            return jsonify(result)
+    
+
+@APP.route('/<device_id>/mp3/<song_name>', methods=['GET'])
 def download_song(device_id, song_name):
-    """
-    TODO: Download a specified song
-    """
-    pass
+
+	"""
+     TODO: Download a specified song
+     """
+    path = 'mp3/' + device_id
+    if not os.path.exists(path):
+		return 'path does not exist'
+
+	return send_from_directory(path, song_name)
+   
 
 
 if __name__ == '__main__':
