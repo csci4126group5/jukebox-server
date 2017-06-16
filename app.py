@@ -5,8 +5,7 @@ import random
 import string
 import os
 import time
-from flask import Flask, flash, jsonify, request, url_for, send_from_directory, redirect
-from flask import send_from_directory
+from flask import Flask, flash, jsonify, request, send_from_directory, redirect
 from werkzeug.utils import secure_filename
 from mutagen.mp3 import MP3
 
@@ -20,10 +19,17 @@ APP.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 GROUPS = {}
-MUSIC = {}
 
 if not os.path.exists('mp3'):
     os.makedirs('mp3')
+
+
+def allowed_file(filename):
+    """
+    Return whether or not the file is proper
+    """
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].upper() in ALLOWED_EXTENSIONS
 
 
 def generate_group_code():
@@ -190,59 +196,47 @@ def user_songs(device_id):
     pass
 
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-
-@APP.route('/<device_id>/mp3')
-def uploaded_file(device_id,mp3):
+@APP.route('/<device_id>/mp3', methods=['POST'])
+def uploaded_file(device_id):
     """
-        /mp3/<device_id>
-        TODO: Upload a song to a user's list
-        """
+    Upload a song to a user's list
+    """
     path = 'mp3/' + device_id
     if not os.path.exists(path):
         os.makedirs(path)
 
-    # if request.method == 'POST':
-    #   f = request.files['file']
-    #   print f
-    #   f.save(secure_filename(f.filename))
-    #   return 'file uploaded successfully'
-    if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-        print file
-        # if user does not select file, browser submits an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(filename))
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    upload = request.files['file']
+    # if user does not select file, browser submits an empty part without
+    # filename
+    if upload.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    elif allowed_file(upload.filename):
+        filename = secure_filename(upload.filename)
+        upload.save(os.path.join(path, filename))
 
-            result = {  "name" : mp3, "url" : str(url_for("uploaded_file",filename=filename)) }
+        result = {
+            "name": filename,
+            "url": '/' + device_id + '/mp3/' + filename
+        }
 
-            return jsonify(result)
-    
+        return jsonify(result)
+
 
 @APP.route('/<device_id>/mp3/<song_name>', methods=['GET'])
 def download_song(device_id, song_name):
-
-	"""
-     TODO: Download a specified song
-     """
+    """
+    Download a specified song
+    """
     path = 'mp3/' + device_id
     if not os.path.exists(path):
-		return 'path does not exist'
+        return 'path does not exist'
 
-	return send_from_directory(path, song_name)
-   
+    return send_from_directory(path, song_name)
 
 
 if __name__ == '__main__':

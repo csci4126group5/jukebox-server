@@ -101,3 +101,6 @@ ENV/
 
 # VirtualEnv
 virtualenv
+
+# Local Storage
+mp3
