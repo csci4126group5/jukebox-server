@@ -183,17 +183,39 @@ def join_group(group_code):
 @APP.route('/group/<group_code>/member/<device_id>', methods=['PUT'])
 def update_score(group_code, device_id):
     """
-    TODO: Update the score for a user in a group
+    Update the score for a user in a group
     """
-    pass
+    body = request.get_json()
+
+    if 'score' not in body:
+        return 'Bad Request body requires score', 400
+
+    if group_code not in GROUPS:
+        return 'Bad Request group code does not exist', 400
+
+    group = GROUPS[group_code]
+    for member in group['members']:
+        if member['device_id'] == device_id:
+            member['score'] = body['score']
+            return jsonify(member)
+
+    return 'Not Found device id does not belong to group', 404
 
 
-@APP.route('/mp3/<device_id>', methods=['GET'])
+@APP.route('/<device_id>/mp3', methods=['GET'])
 def user_songs(device_id):
     """
-    TODO: List all of the songs a device has uploaded
+    List all of the songs a device has uploaded
     """
-    pass
+    songs = get_device_songs(device_id)
+    result = []
+    for song in songs:
+        result.append({
+            'name': song,
+            'url': '/' + device_id + '/mp3/' + song
+        })
+
+    return jsonify(result)
 
 
 @APP.route('/<device_id>/mp3', methods=['POST'])
