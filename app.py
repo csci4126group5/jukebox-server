@@ -5,7 +5,7 @@ import random
 import string
 import os
 import time
-from flask import Flask, flash, jsonify, request, send_from_directory, redirect
+from flask import Flask, jsonify, request, send_from_directory, redirect
 from werkzeug.utils import secure_filename
 from mutagen.mp3 import MP3
 
@@ -229,14 +229,12 @@ def uploaded_file(device_id):
 
     # check if the post request has the file part
     if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
+        return 'Bad Request file required for upload', 400
     upload = request.files['file']
     # if user does not select file, browser submits an empty part without
     # filename
     if upload.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
+        return 'Bad Request file required for upload', 400
     elif allowed_file(upload.filename):
         filename = secure_filename(upload.filename)
         upload.save(os.path.join(path, filename))
