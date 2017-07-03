@@ -5,7 +5,7 @@ import random
 import string
 import os
 import time
-from flask import Flask, jsonify, request, send_from_directory, redirect
+from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.utils import secure_filename
 from mutagen.mp3 import MP3
 
