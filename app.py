@@ -174,7 +174,7 @@ def join_group(group_code):
             if len(songs) > 0:
                 song = songs.pop()
                 set_group_song(group_code,
-                               '/' + max_member['device_id'] + '/mp3/' + song,
+                               '/' + body['device_id'] + '/mp3/' + song,
                                'currentSong' if i == 0 else 'nextSong')
 
     return jsonify(group)
