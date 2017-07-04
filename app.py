@@ -72,7 +72,7 @@ def get_device_songs(device_id):
     return os.listdir(path)
 
 
-def set_group_song(group_code, song_path, playlist_position):
+def set_group_song(group_code, device_id, song_name, playlist_position):
     """
     Set the song for either current or next in a group
     """
@@ -80,8 +80,8 @@ def set_group_song(group_code, song_path, playlist_position):
     if playlist_position == 'nextSong':
         start_time = GROUPS[group_code]['currentSong']['end_time']
     GROUPS[group_code][playlist_position] = {
-        'url': '/' + song_path,
-        'end_time': start_time + MP3(song_path).info.length,
+        'url': '/' + device_id + '/mp3/' + song_name,
+        'end_time': start_time + MP3('mp3/' + device_id + '/' + song_name).info.length,
     }
 
 
@@ -134,7 +134,8 @@ def group_information(group_code):
                 random.shuffle(songs)
                 song = songs.pop()
                 set_group_song(group_code,
-                               '/' + max_member['device_id'] + '/mp3/' + song,
+                               max_member['device_id'],
+                               song,
                                'nextSong')
 
     return jsonify(GROUPS[group_code])
@@ -174,7 +175,8 @@ def join_group(group_code):
             if len(songs) > 0:
                 song = songs.pop()
                 set_group_song(group_code,
-                               '/' + body['device_id'] + '/mp3/' + song,
+                               body['device_id'],
+                               song,
                                'currentSong' if i == 0 else 'nextSong')
 
     return jsonify(group)
