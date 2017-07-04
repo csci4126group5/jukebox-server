@@ -134,7 +134,7 @@ def group_information(group_code):
                 random.shuffle(songs)
                 song = songs.pop()
                 set_group_song(group_code,
-                               'mp3/' + max_member['device_id'] + '/' + song,
+                               '/' + max_member['device_id'] + '/mp3/' + song,
                                'nextSong')
 
     return jsonify(GROUPS[group_code])
@@ -174,7 +174,7 @@ def join_group(group_code):
             if len(songs) > 0:
                 song = songs.pop()
                 set_group_song(group_code,
-                               'mp3/' + body['device_id'] + '/' + song,
+                               '/' + max_member['device_id'] + '/mp3/' + song,
                                'currentSong' if i == 0 else 'nextSong')
 
     return jsonify(group)
