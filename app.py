@@ -47,39 +47,15 @@ def get_device_songs(device_id):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    # -----------
-    # For testing
-    # -----------
-    # import urllib
-
-    # files = [
-    #     'dubstep',
-    #     'cute',
-    #     'littleidea',
-    # ]
-
-    # if not os.path.exists('mp3'):
-    #     os.makedirs('mp3')
-
-    # testfile = urllib.URLopener()
-    # for name in files:
-    #     testfile.retrieve('http://www.bensound.com/royalty-free-music?download=' + name,
-    #                       path + '/' + name + '.mp3')
-    # -----------
-    # Testing done
-    # -----------
-
     return os.listdir(path)
 
 
-def set_group_song(group_code, device_id, song_name, playlist_position):
+def set_group_song(group_code, device_id, song_name):
     """
-    Set the song for either current or next in a group
+    Set the song for a group
     """
     start_time = time.time()
-    if playlist_position == 'nextSong':
-        start_time = GROUPS[group_code]['currentSong']['end_time']
-    GROUPS[group_code][playlist_position] = {
+    GROUPS[group_code]['currentSong'] = {
         'url': '/' + device_id + '/mp3/' + song_name,
         'end_time': start_time + MP3('mp3/' + device_id + '/' + song_name).info.length,
     }
@@ -105,7 +81,6 @@ def create_group():
         'code': group_code,
         'members': [],
         'currentSong': None,
-        'nextSong': None,
     }
     return jsonify(GROUPS[group_code])
 
@@ -120,23 +95,19 @@ def group_information(group_code):
 
     group = GROUPS[group_code]
     if group['currentSong'] and group['currentSong']['end_time'] < time.time():
-        group['currentSong'] = group['nextSong']
         max_member = {
             'score': 0
         }
         for member in group['members']:
-            if member['score'] >= max_member['score']:
+            if member['score'] >= max_member['score'] and len(get_device_songs(member['device_id'])) > 0:
                 max_member = member
             member['score'] = 0
-        if max_member:
+        if max_member['device_id']:
             songs = get_device_songs(max_member['device_id'])
             if len(songs) > 0:
                 random.shuffle(songs)
                 song = songs.pop()
-                set_group_song(group_code,
-                               max_member['device_id'],
-                               song,
-                               'nextSong')
+                set_group_song(group_code, max_member['device_id'], song)
 
     return jsonify(GROUPS[group_code])
 
@@ -157,7 +128,8 @@ def join_group(group_code):
 
     for member in group['members']:
         if member['device_id'] == body['device_id']:
-            return 'Bad Request device_id already in group', 400
+            member['name'] = body['name']
+            return jsonify(group)
 
     group['members'].append({
         'name': body['name'],
@@ -165,19 +137,13 @@ def join_group(group_code):
         'score': 0
     })
 
-    # If they are the first to join the group, use their song list to build the playlist
-    # If they are the second, they get to choose the next
-    # Sample their songs without replacement
-    if len(group['members']) == 1 or len(group['members']) == 2:
+    # If someone joins a group and there is no song yet, grab one from their list
+    if not group['currentSong']:
         songs = get_device_songs(body['device_id'])
         random.shuffle(songs)
-        for i in range(0 if len(group['members']) == 1 else 1, 2):
-            if len(songs) > 0:
-                song = songs.pop()
-                set_group_song(group_code,
-                               body['device_id'],
-                               song,
-                               'currentSong' if i == 0 else 'nextSong')
+        if len(songs) > 0:
+            song = songs.pop()
+            set_group_song(group_code, body['device_id'], song)
 
     return jsonify(group)
 
