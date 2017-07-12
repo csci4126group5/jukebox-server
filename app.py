@@ -94,14 +94,18 @@ def group_information(group_code):
         return 'Bad Request group code does not exist', 400
 
     group = GROUPS[group_code]
+
+    # commented out reset score 
+    """
     if group['currentSong'] and group['currentSong']['end_time'] < time.time():
         max_member = {
             'score': 0
         }
+        """
         for member in group['members']:
             if member['score'] >= max_member['score'] and len(get_device_songs(member['device_id'])) > 0:
                 max_member = member
-            member['score'] = 0
+           # member['score'] = 0
         if max_member['device_id']:
             songs = get_device_songs(max_member['device_id'])
             if len(songs) > 0:
