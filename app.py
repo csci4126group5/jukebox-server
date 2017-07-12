@@ -96,8 +96,9 @@ def group_information(group_code):
     group = GROUPS[group_code]
 
     # commented out reset score 
-    """
+    
     if group['currentSong'] and group['currentSong']['end_time'] < time.time():
+        """
         max_member = {
             'score': 0
         }
