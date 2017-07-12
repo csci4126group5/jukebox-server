@@ -98,11 +98,11 @@ def group_information(group_code):
     # commented out reset score 
     
     if group['currentSong'] and group['currentSong']['end_time'] < time.time():
-        """
+        
         max_member = {
             'score': 0
         }
-        """
+        
         for member in group['members']:
             if member['score'] >= max_member['score'] and len(get_device_songs(member['device_id'])) > 0:
                 max_member = member
