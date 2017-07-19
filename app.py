@@ -9,17 +9,23 @@ from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.utils import secure_filename
 from mutagen.mp3 import MP3
 
+# The length of the group codes that are generated
 CODE_LENGTH = 4
+
+# The location for uploads
 UPLOAD_FOLDER = '/mp3/t<device_id>'
+
+# Which song file extensions we allow
 ALLOWED_EXTENSIONS = set(['WAV', 'AIF', 'MP3', 'MID'])
 
-
+# Create a new Flask app
 APP = Flask(__name__)
 APP.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-
+# Memory store for the groups
 GROUPS = {}
 
+# Songs are stored in local storage, in the mp3 directory
 if not os.path.exists('mp3'):
     os.makedirs('mp3')
 
@@ -95,18 +101,15 @@ def group_information(group_code):
 
     group = GROUPS[group_code]
 
-    # commented out reset score 
-    
+    # If there is a current song, and it is over, get a new one
     if group['currentSong'] and group['currentSong']['end_time'] < time.time():
-        
         max_member = {
             'score': 0
         }
-        
+        # Find the member (with songs) with the highest score
         for member in group['members']:
             if member['score'] >= max_member['score'] and len(get_device_songs(member['device_id'])) > 0:
                 max_member = member
-           # member['score'] = 0
         if max_member['device_id']:
             songs = get_device_songs(max_member['device_id'])
             if len(songs) > 0:
@@ -142,7 +145,8 @@ def join_group(group_code):
         'score': 0
     })
 
-    # If someone joins a group and there is no song yet, grab one from their list
+    # If someone joins a group and there is no song yet, grab one from their
+    # list (if they have songs)
     if not group['currentSong']:
         songs = get_device_songs(body['device_id'])
         random.shuffle(songs)
@@ -200,11 +204,13 @@ def uploaded_file(device_id):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    # check if the post request has the file part
+    # Check if the post request has the file part
     if 'file' not in request.files:
         return 'Bad Request file required for upload', 400
+
     upload = request.files['file']
-    # if user does not select file, browser submits an empty part without
+
+    # If user does not select file, browser submits an empty part without
     # filename
     if upload.filename == '':
         return 'Bad Request file required for upload', 400
